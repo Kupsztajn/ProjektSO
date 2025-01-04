@@ -11,14 +11,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "shm.h"
-
+// Definicja struktury dla pamiêci wspó³dzielonej
 /*
 struct SharedMemory {
     int P; // Maksymalna liczba pszczó³ w ulu
     int N; // Maksymalna liczba pszczó³ w populacji
 };
 */
-
+// Funkcja tworzy segment pamiêci wspó³dzielonej
 int create_shared_memory(const char* pathname, int proj_id, size_t size) {
     // Generowanie klucza za pomoc¹ ftok
     printf("Tworzenie klucza IPC z %s i %d\n", pathname, proj_id);
@@ -28,7 +28,7 @@ int create_shared_memory(const char* pathname, int proj_id, size_t size) {
         exit(EXIT_FAILURE);
     }
     printf("Generowany klucz: %d\n", key);
-
+    // Tworzenie segmentu pamiêci wspó³dzielonej
     int shmid = shmget(key, size, IPC_CREAT | 0666);
     if (shmid == -1) {
         perror("shmget failed");
@@ -40,16 +40,17 @@ int create_shared_memory(const char* pathname, int proj_id, size_t size) {
     return shmid;
 }
 
-
+// Mapuje pamiêæ wspó³dzielon¹ do przestrzeni adresowej procesu
 void* attach_shared_memory(int shmid) {
     void* addr = shmat(shmid, NULL, 0);
     if (addr == (void*)-1) {
+        perror("shmat failed");
         exit(EXIT_FAILURE);
     }
     return addr;
 }
 
-
+// Od³¹cza segment pamiêci wspó³dzielonej od procesu
 void detach_shared_memory(void* addr) {
     if (shmdt(addr) == -1) {
         perror("shmdt failed");
@@ -57,7 +58,7 @@ void detach_shared_memory(void* addr) {
     }
 }
 
-
+// Usuwa segment pamiêci wspó³dzielonej
 void destroy_shared_memory(int shmid) {
     if (shmctl(shmid, IPC_RMID, NULL) == -1) {
         perror("shmctl failed");

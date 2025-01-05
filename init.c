@@ -31,7 +31,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    // Tworzenie tablicy semaforów (5 semafory: SEM_ULE, SEM_POP, SEM_ENT1, SEM_ENT2)
+    
     int semid = semget(sem_key, 6, IPC_CREAT | 0666);
     if (semid == -1) {
         perror("semget failed");
@@ -39,21 +39,21 @@ int main()
     }
 
     // Inicjalizacja wartoœci semaforów
-    inicjalizujSemafor(semid, SEM_ULE, shm->P);   // Liczba miejsc w ulu
-    inicjalizujSemafor(semid, SEM_POP, shm->N);   // Ca³kowita populacja pszczó³
-    inicjalizujSemafor(semid, SEM_ENT1, 1);       // Dostêpne pierwsze wejœcie/wyjœcie
+    inicjalizujSemafor(semid, SEM_ULE, shm->P);   
+    inicjalizujSemafor(semid, SEM_POP, shm->N);   
+    inicjalizujSemafor(semid, SEM_ENT1, 1); 
     inicjalizujSemafor(semid, SEM_ENT2, 1);
     inicjalizujSemafor(semid, SEM_KROL, 1);
     inicjalizujSemafor(semid, SEM_LOCK, 1);
 
 
-    // Proces inicjalizuj¹cy mo¿e dzia³aæ w pêtli, aby umo¿liwiæ innym procesom korzystanie z pamiêci
+    
     while (1) sleep(1);
 
-    // Od³¹czenie pamiêci wspó³dzielonej (teoretycznie nigdy tu nie dochodzi)
+ 
     detach_shared_memory(shm);
 
-    // Usuniêcie segmentu pamiêci wspó³dzielonej
+
     destroy_shared_memory(shmid);
 
     return 0;

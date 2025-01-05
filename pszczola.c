@@ -59,3 +59,28 @@ int main()
     
 	return 0;
 }
+
+int release_semaphore(int semid, int sem_num) {
+    struct sembuf op = { sem_num, 1, 0 };
+    if (semop(semid, &op, 1) == -1) {
+        perror("Failed to release semaphore");
+        return -1;
+    }
+    return 0;
+}
+
+int acquire_semaphore(int semid, int sem_num) {
+    struct sembuf op = { sem_num, -1, 0 };
+    if (semop(semid, &op, 1) == -1) {
+        perror("Failed to acquire semaphore");
+        return -1;
+    }
+    return 0;
+}
+
+void release_entrance(int semid, int sem_entrance) {
+    struct sembuf op_increase_entrance = { sem_entrance, 1, 0 };
+    if (semop(semid, &op_increase_entrance, 1) == -1) {
+        perror("Failed to release entrance semafor");
+    }
+}

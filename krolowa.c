@@ -7,6 +7,19 @@
 #include "shm.h"
 #include "sem.h"
 
+#define SEM_ULE 2 
+#define SEM_POP 3
+#define SEM_ENT1 0
+#define SEM_ENT2 1
+#define SEM_KROL 4
+#define SEM_LOCK 5
+/*#define SEM_ULE 0  // Semafor na liczbê pszczó³ w ulu
+#define SEM_POP 1  // Semafor na liczbê pszczó³ w populacji
+#define SEM_ENT1 2 // Semafor na pierwsze wejœcie/wyjœcie
+#define SEM_ENT2 3 // Semafor na drugie wejœcie/wyjœcie*/
+
+void queen_logic(int semid, int* ilosc, int* P, int* max);
+
 int main()
 {
     key_t shm_key = ftok("/tmp", 'A');

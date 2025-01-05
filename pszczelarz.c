@@ -193,11 +193,56 @@ void setup_signal_handler(int signal, void (*handler)(int)) {
 }
 
 
-int main()
-{
+int main() {
+    // Generowanie klucza dla pamiêci wspó³dzielonej za pomoc¹ ftok
+    key_t shm_key = ftok("/tmp", 'A');
+    if (shm_key == -1) {
+        perror("\t \t [PSZCZELARZ] ftok failed for shared memory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Uzyskanie dostêpu do segmentu pamiêci wspó³dzielonej
+    int shmid = shmget(shm_key, sizeof(struct SharedMemory), 0666);
+    if (shmid == -1) {
+        perror("\t \t [PSZCZELARZ] shmget failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Pod³¹czenie segmentu pamiêci wspó³dzielonej
+    shm = (struct SharedMemory*)attach_shared_memory(shmid);
+
+    // Generowanie klucza dla tablicy semaforów za pomoc¹ ftok
+    key_t sem_key = ftok("/tmp", 'B');
+    if (sem_key == -1) {
+        perror("\t \t [PSZCZELARZ] ftok failed for semaphores");
+        exit(EXIT_FAILURE);
+    }
+
+    // Uzyskanie dostêpu do tablicy semaforów
+    semid = semget(sem_key, 5, 0666);
+    if (semid == -1) {
+        perror("\t \t [PSZCZELARZ] semget failed");
+        detach_shared_memory(shm);
+        exit(EXIT_FAILURE);
+    }
+
+    // Rejestracja handlerów sygna³ów za pomoc¹ sigaction
+
+    setup_signal_handler(SIGHUP, handle_sighup);
+    setup_signal_handler(SIGQUIT, handle_sigquit);
+
+    printf("\t \t [PSZCZELARZ] Pszczelarz uruchomiony. PID: %d\n", getpid());
+    printf("\t \t [PSZCZELARZ] Oczekiwanie na sygna³y SIGHUP i SIGQUIT...\n");
 
 
 
+    // G³ówna pêtla programu
+    while (1) {
+        pause(); // Oczekiwanie na sygna³y
+    }
 
-	return 0;
+    // Od³¹czenie pamiêci wspó³dzielonej (teoretycznie, bo pause() czeka na sygna³y)
+    detach_shared_memory(shm);
+
+    return 0;
 }

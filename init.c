@@ -43,7 +43,8 @@ int main()
     inicjalizujSemafor(semid, SEM_POP, shm->N);   // Ca³kowita populacja pszczó³
     inicjalizujSemafor(semid, SEM_ENT1, 1);       // Dostêpne pierwsze wejœcie/wyjœcie
     inicjalizujSemafor(semid, SEM_ENT2, 1);
-    
+    inicjalizujSemafor(semid, SEM_KROL, 1);
+    inicjalizujSemafor(semid, SEM_LOCK, 1);
 
 
     // Proces inicjalizuj¹cy mo¿e dzia³aæ w pêtli, aby umo¿liwiæ innym procesom korzystanie z pamiêci

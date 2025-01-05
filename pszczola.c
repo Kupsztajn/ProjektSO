@@ -54,8 +54,8 @@ int main()
         exit(EXIT_FAILURE);
     }
 
+    bee_logic(semid, &shm->P, &shm->N, &shm->nadmiar_ULE, &shm->nadmiar_POP);
 
-
-
+    
 	return 0;
 }

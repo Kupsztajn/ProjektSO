@@ -180,6 +180,19 @@ void handle_sigquit(int sig) {
 
 }
 
+void setup_signal_handler(int signal, void (*handler)(int)) {
+    struct sigaction sa;
+    sa.sa_handler = handler;  // Ustawienie funkcji obs³ugi
+    sa.sa_flags = 0;          // Brak dodatkowych flag
+    sigemptyset(&sa.sa_mask); // Brak blokowanych sygna³ów podczas obs³ugi
+
+    if (sigaction(signal, &sa, NULL) == -1) {
+        perror("\t \t [PSZCZELARZ] Nie uda³o siê zarejestrowaæ handlera sygna³u");
+        exit(EXIT_FAILURE);
+    }
+}
+
+
 int main()
 {
 

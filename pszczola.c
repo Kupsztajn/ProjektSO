@@ -13,16 +13,15 @@
 // Indeksy semaforów w tablicy
 #define SEM_ENT1 0
 //#define SEM_POM 5
-#define SEM_ENT2 1 
-#define SEM_ULE  2 
+#define SEM_ENT2 1
+#define SEM_ULE  2
 #define SEM_POP  3 
 #define SEM_KROL 4
 #define SEM_LOCK 5
-
+// Funkcja symuluj¹ca pszczo³ê robotnicê
 void bee_logic(int semid, int* P, int* shm, int* nadmiarULE, int* nadmiarPOP);
 
-int main()
-{
+int main() {
     key_t shm_key = ftok("/tmp", 'A');
     if (shm_key == -1) {
         perror("ftok failed for shared memory");
@@ -54,10 +53,25 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    bee_logic(semid, &shm->P, &shm->N, &shm->nadmiar_ULE, &shm->nadmiar_POP);
+    // Inicjalizacja wartoœci semaforów
+    //inicjalizujSemafor(semid, SEM_ENT1, 1);  // Pierwsze wejœcie/wyjœcie
+    //inicjalizujSemafor(semid, SEM_ENT2, 1);  // Drugie wejœcie/wyjœcie
+    //inicjalizujSemafor(semid, SEM_ULE, shm->P); // Liczba miejsc w ulu
+    //inicjalizujSemafor(semid, SEM_POP, shm->N); // Ca³kowita populacja pszczó³
 
-    
-	return 0;
+    // Symulacja pracy pszczo³y
+    bee_logic(semid, &shm->P, &shm->N, &shm->nadmiar_ULE, &shm->nadmiar_POP);
+    /*
+    // Od³¹czenie pamiêci wspó³dzielonej
+    detach_shared_memory(shm);
+
+    // Usuniêcie tablicy semaforów
+
+    if (semctl(semid, 0, IPC_RMID) == -1) {
+        perror("Failed to remove semaphore array");
+    }
+    */
+    return 0;
 }
 
 int release_semaphore(int semid, int sem_num) {
@@ -97,15 +111,19 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
             return 0;
         }
 
-        sleep(rand() % 5 + 1); 
+        sleep(rand() % 5 + 1); // Pszczo³a w ulu
 
-        
+        // Wybór wejœcia przy wyjœciu
         int entrance = rand() % 2;
         int sem_entrance = (entrance == 0) ? SEM_ENT1 : SEM_ENT2;
 
-      
+        // Atomowe zajêcie wejœcia i zwiêkszenie SEM_ULE
 
 
+        struct sembuf exit_ops[] = {
+            {sem_entrance, -1, 0}, // Zajêcie wejœcia
+            {SEM_ULE, 1, 0}        // Zwolnienie miejsca w ulu
+        };
         if (semop(semid, exit_ops, 2) == -1) {
             perror("semop failed during exit");
             continue;
@@ -117,12 +135,20 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         sleep(rand() % 5 + 1);
 
 
+        // Zablokowanie dostêpu do nadmiarPOP i nadmiarULE
+        //struct sembuf lock_nadmiar = {SEM_KROL, -1, 0}; // Mo¿esz u¿yæ SEM_KROL lub innego dedykowanego semafora
+        //semop(semid, &lock_nadmiar, 1);
+
         if (*nadmiarPOP > 0) {
             printf("\t [Pszczola] NADMIAR PSZCZOL, PSZCZOLA UMIERA, BRAK DLA NIEJ MIEJSCA");
             (*nadmiarPOP)--;
 
             return 0;
         }
+
+        // Odblokowanie dostêpu po zakoñczeniu modyfikacji
+        //struct sembuf unlock_nadmiar = {SEM_KROL, 1, 0};
+        //semop(semid, &unlock_nadmiar, 1);
 
 
         // Wybór wejœcia przy powrocie
@@ -153,6 +179,22 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         }
 
     }
+    struct sembuf death[] = {
+            {SEM_POP, 1, 0}, // podniesienie semafora poopulacji
+            {SEM_ULE, 1, 0}        // Zwolnienie miejsca w ulu
+    };
+    struct sembuf death_noPOP[] = {
+            {SEM_POP, 0, 0},
+            {SEM_ULE, 1, 0}
+    };
+    struct sembuf death_noULE[] = {
+            {SEM_POP, 1, 0},
+            {SEM_ULE, 0, 0}
+    };
+    struct sembuf death_noULE_noPOP[] = {
+            {SEM_POP, 0, 0},
+            {SEM_ULE, 0, 0}
+    };
 
     if (semop(semid, death, 2) == -1) {
         perror("semop failed during exit");
@@ -178,5 +220,4 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     */
     printf("\t [Pszczola] Pszczola umarla Semafor_ULE: %d \n", semctl(semid, SEM_ULE, GETVAL));
     return 0;
-
 }

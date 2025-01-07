@@ -19,8 +19,8 @@ int main() {
 
     struct SharedMemory* shm = (struct SharedMemory*)attach_shared_memory(shmid);
 
-    shm->P = 10; // Maksymalna liczba pszczó³ w ulu
-    shm->N = 20; // Maksymalna liczba pszczó³ w populacji
+    shm->P = 2; // Maksymalna liczba pszczó³ w ulu
+    shm->N = 4; // Maksymalna liczba pszczó³ w populacji
     shm->nadmiar_ULE = 0;
     shm->nadmiar_POP = 0;
     printf("Segment pamiêci wspó³dzielonej utworzony: shmid = %d\n", shmid);

@@ -101,8 +101,8 @@ void release_entrance(int semid, int sem_entrance) {
 
 void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int odwiedziny = VISITS;
-    int czy_zwiekszyc_ule = -1;
-    int czy_zwiekszyc_pop = -1;
+    int czy_zwiekszyc_ule = 1;
+    int czy_zwiekszyc_pop = 1;
     while (odwiedziny--) {
 
         sleep(rand() % 5 + 1); // Pszczo³a w ulu
@@ -176,8 +176,16 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         release_semaphore(semid, sem_entrance);
 
     }
-
+    /*
     if (semctl(semid, SEM_POP, GETVAL) >= *N) {
+        czy_zwiekszyc_pop = 0;
+    }
+    else {
+        czy_zwiekszyc_pop = 1;
+    }
+    */
+
+    if (*nadmiarPOP > 0) {
         czy_zwiekszyc_pop = 0;
     }
     else {
@@ -233,6 +241,6 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         printf("\t [Pszczola] NADMIAR PSZCZOL, PSZCZOLA UMIERA , BRAK DLA NIEJ MIEJSCA");
         if (*nadmiarULE > 0) { (*nadmiarULE)--; (*nadmiarPOP)--; }
     }
-
+    if (*nadmiarPOP > 0) (*nadmiarPOP)--;
     exit(0);
 }

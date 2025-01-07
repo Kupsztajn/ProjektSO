@@ -101,7 +101,8 @@ void release_entrance(int semid, int sem_entrance) {
 
 void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int odwiedziny = VISITS;
-    int czy_zwiekszyc = 1;
+    int czy_zwiekszyc_ule = -1;
+    int czy_zwiekszyc_pop = -1;
     while (odwiedziny--) {
 
         sleep(rand() % 5 + 1); // Pszczo³a w ulu
@@ -112,24 +113,28 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
 
         // Atomowe zajêcie wejœcia i zwiêkszenie SEM_ULE
 
-        if (*nadmiarULE > 0) {
-            czy_zwiekszyc = 0;
+        if (semctl(semid, SEM_ULE, GETVAL) >= *P) {
+            czy_zwiekszyc_ule = 0;
+        }
+        else
+        {
+            czy_zwiekszyc_ule = 1;
         }
         struct sembuf exit_ops[] = {
             {sem_entrance, -1, 0}, // Zajêcie wejœcia
-            {SEM_ULE, czy_zwiekszyc, 0}        // Zwolnienie miejsca w ulu
+            {SEM_ULE, czy_zwiekszyc_ule, 0}        // Zwolnienie miejsca w ulu
         };
 
-        czy_zwiekszyc = 1;
 
         if (semop(semid, exit_ops, 2) == -1) {
             perror("semop failed during exit");
             continue;
         }
         //czy_zwiekszyc = -1;
-        printf("\t [Pszczola] Pszczo³a opuszcza ul przez wejœcie %d.\n", entrance + 1);
+        printf("\t [Pszczola] Pszczo³a opuszcza ul przez wejœcie %d Liczba pszczol w ulu.\n", entrance + 1);
         release_entrance(semid, entrance);
         // Symulacja pracy na zewn¹trz
+        if (*nadmiarULE > 0) (*nadmiarULE)--;
         sleep(rand() % 5 + 1);
 
 
@@ -171,13 +176,24 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         release_semaphore(semid, sem_entrance);
 
     }
+
+    if (semctl(semid, SEM_POP, GETVAL) >= *N) {
+        czy_zwiekszyc_pop = 0;
+    }
+    else {
+        czy_zwiekszyc_pop = 1;
+    }
+
     struct sembuf death[] = {
-            {SEM_POP, 1, 0}, // podniesienie semafora poopulacji
-            {SEM_ULE, 1, 0}        // Zwolnienie miejsca w ulu
+        //{SEM_POP, 1, 0}, // podniesienie semafora poopulacji
+        //{SEM_ULE, 1, 0}        // Zwolnienie miejsca w ulu
+        {SEM_POP, czy_zwiekszyc_pop, 0},
+        {SEM_ULE, 1, 0}
     };
     if (semop(semid, death, 2) == -1) {
         perror("semop failed during exit");
     }
+    czy_zwiekszyc_pop = 1;
     /*
     struct sembuf death_noPOP[] = {
             {SEM_POP, 0, 0},

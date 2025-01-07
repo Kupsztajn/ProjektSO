@@ -148,7 +148,7 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
         else {
             printf("[Krolowa] Brak miejsca w ulu lub osiagnieto limit populacji na z³o¿enie jaj. Królowa czeka... Semafor_ULE %d SEMAFOR_POP %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
         }
-        // Czas sk³adania jaj (Tk)
+        //Czas sk³adania jaj (Tk)
 
         //struct sembuf unlock_counters = {SEM_LOCK, 1, 0};
         //semop(semid, &unlock_counters, 1);
@@ -160,6 +160,7 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
         }
 
-        sleep(5);
+        int delay = 3 + rand() % 5; // Losuje wartoœæ 3, 4 lub 5
+        sleep(delay);
     }
 }

@@ -32,7 +32,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    int semid = semget(sem_key, 6, IPC_CREAT | 0666);
+    int semid = semget(sem_key, 6, IPC_CREAT | 0600);
     if (semid == -1) {
         perror("semget failed");
         exit(EXIT_FAILURE);

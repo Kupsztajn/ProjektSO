@@ -19,8 +19,8 @@ int main() {
 
     struct SharedMemory* shm = (struct SharedMemory*)attach_shared_memory(shmid);
 
-    shm->P = 2; // Maksymalna liczba pszczó³ w ulu
-    shm->N = 4; // Maksymalna liczba pszczó³ w populacji
+    shm->N = 16; // Maksymalna liczba pszczó³ w populacji
+    shm->P = shm->N / 2;
     shm->nadmiar_ULE = 0;
     shm->nadmiar_POP = 0;
     printf("Segment pamiêci wspó³dzielonej utworzony: shmid = %d\n", shmid);
@@ -32,7 +32,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    int semid = semget(sem_key, 6, IPC_CREAT | 0666);
+    int semid = semget(sem_key, 6, IPC_CREAT | 0600);
     if (semid == -1) {
         perror("semget failed");
         exit(EXIT_FAILURE);

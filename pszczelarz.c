@@ -205,7 +205,7 @@ int main() {
     }
 
 
-    int shmid = shmget(shm_key, sizeof(struct SharedMemory), 0666);
+    int shmid = shmget(shm_key, sizeof(struct SharedMemory), 0600);
     if (shmid == -1) {
         perror("\t \t [PSZCZELARZ] shmget failed");
         exit(EXIT_FAILURE);
@@ -221,7 +221,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    semid = semget(sem_key, 5, 0666);
+    semid = semget(sem_key, 5, 0600);
     if (semid == -1) {
         perror("\t \t [PSZCZELARZ] semget failed");
         detach_shared_memory(shm);

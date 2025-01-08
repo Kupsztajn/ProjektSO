@@ -24,7 +24,7 @@ void* zombie_collector(void* arg) {
         while (waitpid(-1, NULL, WNOHANG) > 0) {
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
         }
-        sleep(1); // Unikniêcie zajmowania procesora w pêtli
+        sleep(1);
     }
     return NULL;
 }
@@ -92,7 +92,7 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
 
         //struct sembuf lock_counters = {SEM_LOCK, -1, 0};
         //semop(semid, &lock_counters, 1);
-
+        //acquire_semaphore(semid, SEM_LOCK);
         // czy jest miejsce w ulu na nowe jaja
         int wolne_miejsca = semctl(semid, SEM_ULE, GETVAL);
         if (wolne_miejsca > 0 && semctl(semid, SEM_POP, GETVAL) > 0) {
@@ -149,6 +149,7 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
             printf("[Krolowa] Brak miejsca w ulu lub osiagnieto limit populacji na z³o¿enie jaj. Królowa czeka... Semafor_ULE %d SEMAFOR_POP %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
         }
         //Czas sk³adania jaj (Tk)
+        //release_semaphore(semid, SEM_LOCK);
 
         //struct sembuf unlock_counters = {SEM_LOCK, 1, 0};
         //semop(semid, &unlock_counters, 1);

@@ -23,7 +23,7 @@ int main() {
 
     // Poczekaj chwilê, aby init zainicjowa³ pamiêæ wspó³dzielon¹ i semafory
     sleep(1);
-
+    /*
     key_t shm_key = ftok("/tmp", 'A');
     if (shm_key == -1) {
         perror("ftok failed for shared memory");
@@ -36,8 +36,8 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    struct SharedMemory* shm = (struct SharedMemory*)shmat(shmid, NULL, 0);
-    if (shm == (void*)-1) {
+    struct SharedMemory* shm = (struct SharedMemory*) shmat(shmid, NULL, 0);
+    if (shm == (void*) -1) {
         perror("shmat failed");
         exit(EXIT_FAILURE);
     }
@@ -55,7 +55,7 @@ int main() {
     shm->N = population_limit;
     shm->P = population_limit / 2; // Zaktualizuj limit pszczó³ w ulu
     printf("Zaktualizowano limity: N = %d, P = %d\n", shm->N, shm->P);
-
+    */
     // Uruchamianie programu pszczelarz
     printf("Uruchamianie programu pszczelarz...\n");
     pszczelarz_pid = fork();

@@ -1,17 +1,8 @@
-/*
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <unistd.h>
-#include <string.h>
-#include "shm.h"
-*/
 #include <sys/shm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "shm.h"
-// Definicja struktury dla pamiêci wspó³dzielonej
+
 /*
 struct SharedMemory {
     int P; // Maksymalna liczba pszczó³ w ulu
@@ -19,6 +10,45 @@ struct SharedMemory {
 };
 */
 // Funkcja tworzy segment pamiêci wspó³dzielonej
+void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
+    // Klucz do pamiêci wspó³dzielonej
+    key_t shm_key = ftok("/tmp", 'A');
+    if (shm_key == -1) {
+        perror("ftok failed for shared memory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Inicjalizacja pamiêci wspó³dzielonej
+    *shmid = shmget(shm_key, sizeof(struct SharedMemory), IPC_CREAT | 0600);
+    if (*shmid == -1) {
+        perror("shmget failed");
+        exit(EXIT_FAILURE);
+    }
+
+    *shm = (struct SharedMemory*)attach_shared_memory(*shmid);
+    if (*shm == NULL) {
+        perror("attach_shared_memory failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Klucz do semaforów
+    key_t sem_key = ftok("/tmp", 'B');
+    if (sem_key == -1) {
+        perror("ftok failed for semaphores");
+        exit(EXIT_FAILURE);
+    }
+
+    // Inicjalizacja semaforów
+    *semid = semget(sem_key, 6, IPC_CREAT | 0600);
+    if (*semid == -1) {
+        perror("semget failed");
+        detach_shared_memory(*shm);
+        exit(EXIT_FAILURE);
+    }
+}
+
+
+
 int create_shared_memory(const char* pathname, int proj_id, size_t size) {
     // Generowanie klucza za pomoc¹ ftok
     printf("Tworzenie klucza IPC z %s i %d\n", pathname, proj_id);
@@ -29,7 +59,7 @@ int create_shared_memory(const char* pathname, int proj_id, size_t size) {
     }
     printf("Generowany klucz: %d\n", key);
     // Tworzenie segmentu pamiêci wspó³dzielonej
-    int shmid = shmget(key, size, IPC_CREAT | 0666);
+    int shmid = shmget(key, size, IPC_CREAT | 0600);
     if (shmid == -1) {
         perror("shmget failed");
         printf("Rozmiar segmentu: %lu\n", size);

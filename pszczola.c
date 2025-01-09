@@ -8,7 +8,7 @@
 #include "shm.h"
 #include "sem.h"
 
-#define VISITS 2
+#define VISITS 15
 
 // indeksy semfaorow
 #define SEM_ENT1 0
@@ -22,6 +22,7 @@
 void bee_logic(int semid, int* P, int* shm, int* nadmiarULE, int* nadmiarPOP);
 
 int main() {
+    /*
     key_t shm_key = ftok("/tmp", 'A');
     if (shm_key == -1) {
         perror("ftok failed for shared memory");
@@ -34,12 +35,12 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    struct SharedMemory* shm = (struct SharedMemory*)attach_shared_memory(shmid);
+    struct SharedMemory* shm = (struct SharedMemory*) attach_shared_memory(shmid);
     if (!shm) {
         perror("attach_shared_memory failed");
         exit(EXIT_FAILURE);
     }
-    shm = (struct SharedMemory*)attach_shared_memory(shmid);
+    shm = (struct SharedMemory*) attach_shared_memory(shmid);
 
     key_t sem_key = ftok("/tmp", 'B');
     if (sem_key == -1) {
@@ -52,7 +53,12 @@ int main() {
         perror("semget failed");
         exit(EXIT_FAILURE);
     }
+    */
+    int shmid, semid;
+    struct SharedMemory* shm;
 
+    // Wywo³anie funkcji do inicjalizacji zasobów IPC
+    zbior_sem_mem(&shmid, &shm, &semid);
     // Inicjalizacja wartoœci semaforów
     //inicjalizujSemafor(semid, SEM_ENT1, 1);  // Pierwsze wejœcie/wyjœcie
     //inicjalizujSemafor(semid, SEM_ENT2, 1);  // Drugie wejœcie/wyjœcie
@@ -105,7 +111,7 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int czy_zwiekszyc_pop = 1;
     while (odwiedziny--) {
 
-        sleep(rand() % 1 + 1); // Pszczo³a w ulu
+        //sleep(rand() % 1 + 1); // Pszczo³a w ulu
 
         // Wybór wejœcia przy wyjœciu
         int entrance = rand() % 2;
@@ -142,7 +148,7 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         release_semaphore(semid, SEM_LOCK);
         release_entrance(semid, entrance);
         // Symulacja pracy na zewn¹trz
-        sleep(rand() % 1 + 1);
+        //sleep(rand() % 1 + 1);
 
 
         // Zablokowanie dostêpu do nadmiarPOP i nadmiarULE

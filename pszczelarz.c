@@ -110,7 +110,7 @@ void handle_sigquit(int sig) {
         {SEM_ENT1, -1, 0}, // Zablokowanie SEM_ENT1
         {SEM_ENT2, -1, 0}, // Zablokowanie SEM_ENT2
         {SEM_KROL, -1, 0}, // Zablokowanie SEM_KROL
-        //{SEM_POP, 0, 0}, 
+        {SEM_LOCK, -1, 0},
         //{SEM_ULE, 0, 0} 
     };
     semop(semid, lock_all, 3);
@@ -174,7 +174,8 @@ void handle_sigquit(int sig) {
     struct sembuf unlock_all[] = {
         {SEM_ENT1, 1, 0}, // Odblokowanie SEM_ENT1
         {SEM_ENT2, 1, 0}, // Odblokowanie SEM_ENT2
-        {SEM_KROL, 1, 0}  // Odblokowanie SEM_KROL
+        {SEM_KROL, 1, 0},  // Odblokowanie SEM_KROL
+        {SEM_LOCK, 1, 0}
     };
     semop(semid, unlock_all, 3);
     //struct sembuf unlock_queen = {SEM_KROL, 1, 0};
@@ -221,14 +222,19 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    semid = semget(sem_key, 5, 0600);
+    semid = semget(sem_key, 6, 0600);
     if (semid == -1) {
         perror("\t \t [PSZCZELARZ] semget failed");
         detach_shared_memory(shm);
         exit(EXIT_FAILURE);
     }
 
+    //inicjalizacja();
+    //int shmid, semid;
+    //struct SharedMemory* shm;
 
+    // Wywo³anie funkcji do inicjalizacji zasobów IPC
+    //zbior_sem_mem(&shmid, &shm, &semid);
 
     setup_signal_handler(SIGHUP, handle_sighup);
     setup_signal_handler(SIGQUIT, handle_sigquit);
@@ -237,13 +243,13 @@ int main() {
     printf("\t \t [PSZCZELARZ] Oczekiwanie na sygna³y SIGHUP i SIGQUIT...\n");
 
 
-
     while (1) {
+        //while (waitpid(-1, NULL, WNOHANG) > 0) {
+        //    printf("[PSZCZELARZ] Zebrano zakoñczony proces potomny.\n");
+        //}
 
         pause();
     }
-
-
     detach_shared_memory(shm);
 
     return 0;

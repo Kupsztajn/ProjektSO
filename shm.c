@@ -3,15 +3,8 @@
 #include <stdlib.h>
 #include "shm.h"
 
-/*
-struct SharedMemory {
-    int P; // Maksymalna liczba pszczó³ w ulu
-    int N; // Maksymalna liczba pszczó³ w populacji
-};
-*/
 // Funkcja tworzy segment pamiêci wspó³dzielonej
 void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
-    // Klucz do pamiêci wspó³dzielonej
     key_t shm_key = ftok("/tmp", 'A');
     if (shm_key == -1) {
         perror("ftok failed for shared memory");

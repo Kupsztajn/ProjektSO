@@ -8,7 +8,7 @@
 #include "shm.h"
 #include "sem.h"
 
-#define VISITS 15
+#define VISITS 50
 
 // indeksy semfaorow
 #define SEM_ENT1 0
@@ -78,9 +78,9 @@ int main() {
     }
     */
 }
-
+/*
 int release_semaphore(int semid, int sem_num) {
-    struct sembuf op = { sem_num, 1, 0 };
+    struct sembuf op = {sem_num, 1, 0};
     if (semop(semid, &op, 1) == -1) {
         perror("Failed to release semaphore");
         return -1;
@@ -89,7 +89,7 @@ int release_semaphore(int semid, int sem_num) {
 }
 
 int acquire_semaphore(int semid, int sem_num) {
-    struct sembuf op = { sem_num, -1, 0 };
+    struct sembuf op = {sem_num, -1, 0};
     if (semop(semid, &op, 1) == -1) {
         perror("Failed to acquire semaphore");
         return -1;
@@ -98,12 +98,12 @@ int acquire_semaphore(int semid, int sem_num) {
 }
 
 void release_entrance(int semid, int sem_entrance) {
-    struct sembuf op_increase_entrance = { sem_entrance, 1, 0 };
+    struct sembuf op_increase_entrance = {sem_entrance, 1, 0};
     if (semop(semid, &op_increase_entrance, 1) == -1) {
         perror("Failed to release entrance semafor");
     }
 }
-
+*/
 
 void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int odwiedziny = VISITS;

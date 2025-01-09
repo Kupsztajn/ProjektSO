@@ -16,13 +16,13 @@ int main() {
 
     int shmid = create_shared_memory("/tmp", 'A', sizeof(struct SharedMemory));
 
-
     struct SharedMemory* shm = (struct SharedMemory*)attach_shared_memory(shmid);
 
-    shm->N = 16; // Maksymalna liczba pszczó³ w populacji
+    shm->N = 16;
     shm->P = shm->N / 2;
     shm->nadmiar_ULE = 0;
     shm->nadmiar_POP = 0;
+
     printf("Segment pamiêci wspó³dzielonej utworzony: shmid = %d\n", shmid);
     printf("Wartoœci w pamiêci wspó³dzielonej: P = %d, N = %d\n", shm->P, shm->N);
 
@@ -38,18 +38,25 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    inicjalizujSemafor(semid, SEM_ULE, shm->P);
-    inicjalizujSemafor(semid, SEM_POP, shm->N);
-    inicjalizujSemafor(semid, SEM_ENT1, 1);
-    inicjalizujSemafor(semid, SEM_ENT2, 1);
-    inicjalizujSemafor(semid, SEM_KROL, 1);
-    inicjalizujSemafor(semid, SEM_LOCK, 1);
+    init_semaphore(semid, SEM_ULE, shm->P);
+    init_semaphore(semid, SEM_POP, shm->N);
+    init_semaphore(semid, SEM_ENT1, 1);
+    init_semaphore(semid, SEM_ENT2, 1);
+    init_semaphore(semid, SEM_KROL, 1);
+    init_semaphore(semid, SEM_LOCK, 1);
 
     while (1) sleep(1);
-
+    /*
+    zwolnijSemafor(semid, 0);
+    zwolnijSemafor(semid, 1);
+    zwolnijSemafor(semid, 2);
+    zwolnijSemafor(semid, 3);
+    zwolnijSemafor(semid, 4);
+    zwolnijSemafor(semid, 5);
+    */
     detach_shared_memory(shm);
 
-    destroy_shared_memory(shmid);
+    //destroy_shared_memory(shmid);
 
     return 0;
 }

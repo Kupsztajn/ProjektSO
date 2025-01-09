@@ -239,9 +239,6 @@ int main() {
 
 
     while (1) {
-        while (waitpid(-1, NULL, WNOHANG) > 0) {
-            printf("[PSZCZELARZ] Zebrano zakoñczony proces potomny.\n");
-        }
 
         pause();
     }

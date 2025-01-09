@@ -3,10 +3,9 @@
 
 #include <sys/types.h>
 
-// Struktura pamiêci wspó³dzielonej
 struct SharedMemory {
-    int P; // Maksymalna liczba pszczó³ w ulu
-    int N; // Maksymalna liczba pszczó³ w populacji
+    int P;
+    int N;
     int nadmiar_ULE;
     int nadmiar_POP;
 };

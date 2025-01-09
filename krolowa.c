@@ -218,6 +218,6 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
         }
 
         int delay = 0 + rand() % 2; // Losuje wartoœæ 3, 4 lub 5
-        //sleep(delay);
+        sleep(delay);
     }
 }

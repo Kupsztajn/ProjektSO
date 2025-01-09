@@ -24,6 +24,7 @@
 #include "shm.h"
 
 // Funkcja do inicjalizacji pamiêci wspó³dzielonej i semaforów
+/*
 void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
     // Klucz do pamiêci wspó³dzielonej
     key_t shm_key = ftok("/tmp", 'A');
@@ -39,7 +40,7 @@ void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
         exit(EXIT_FAILURE);
     }
 
-    *shm = (struct SharedMemory*)attach_shared_memory(*shmid);
+    *shm = (struct SharedMemory*) attach_shared_memory(*shmid);
     if (*shm == NULL) {
         perror("attach_shared_memory failed");
         exit(EXIT_FAILURE);
@@ -60,7 +61,7 @@ void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
         exit(EXIT_FAILURE);
     }
 }
-
+*/
 
 void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP);
 
@@ -218,6 +219,6 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
         }
 
         int delay = 0 + rand() % 2; // Losuje wartoœæ 3, 4 lub 5
-        sleep(delay);
+        //sleep(delay);
     }
 }

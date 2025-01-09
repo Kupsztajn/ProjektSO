@@ -8,9 +8,9 @@
 #include "shm.h"
 #include "sem.h"
 
-#define VISITS 5
+#define VISITS 2
 
-// Indeksy semaforów w tablicy
+// indeksy semfaorow
 #define SEM_ENT1 0
 //#define SEM_POM 5
 #define SEM_ENT2 1
@@ -18,7 +18,7 @@
 #define SEM_POP  3 
 #define SEM_KROL 4
 #define SEM_LOCK 5
-// Funkcja symuluj¹ca pszczo³ê robotnicê
+
 void bee_logic(int semid, int* P, int* shm, int* nadmiarULE, int* nadmiarPOP);
 
 int main() {
@@ -105,7 +105,7 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int czy_zwiekszyc_pop = 1;
     while (odwiedziny--) {
 
-        sleep(rand() % 5 + 1); // Pszczo³a w ulu
+        //sleep(rand() % 1 + 1); // Pszczo³a w ulu
 
         // Wybór wejœcia przy wyjœciu
         int entrance = rand() % 2;
@@ -114,7 +114,7 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         // Atomowe zajêcie wejœcia i zwiêkszenie SEM_ULE
         // if (semctl(semid, SEM_ULE, GETVAL) >= *P)
         acquire_semaphore(semid, SEM_LOCK);
-        if (*nadmiarULE > 0) {
+        if (*nadmiarULE > 0 && semctl(semid, SEM_ULE, GETVAL) > *P) {
             czy_zwiekszyc_ule = 0;
         }
         else
@@ -137,11 +137,12 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         if (*nadmiarULE > 0) (*nadmiarULE)--;
         else *nadmiarULE = 0;
 
-        printf("\t [Pszczola] Pszczo³a opuszcza ul przez wejœcie %d Liczba pszczol w ulu %d = %d - %d + %d.\n", entrance + 1, *P - semctl(semid, SEM_ULE, GETVAL) + *nadmiarULE, *P, semctl(semid, SEM_ULE, GETVAL), *nadmiarULE);
+        //printf("\t [Pszczola] Pszczo³a opuszcza ul przez wejœcie %d Liczba pszczol w ulu %d = %d - %d + %d.\n", entrance + 1, *P-semctl(semid, SEM_ULE, GETVAL) + *nadmiarULE, *P, semctl(semid, SEM_ULE, GETVAL), *nadmiarULE);
+        printf("\t [Pszczola] Pszczo³a opuszcza ul przez wejœcie %d. \n", entrance + 1);
         release_semaphore(semid, SEM_LOCK);
         release_entrance(semid, entrance);
         // Symulacja pracy na zewn¹trz
-        sleep(rand() % 5 + 1);
+        //sleep(rand() % 1 + 1);
 
 
         // Zablokowanie dostêpu do nadmiarPOP i nadmiarULE
@@ -176,8 +177,8 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         }
 
 
-        printf("\t [Pszczola] Pszczo³a wesz³a do ula przez wejœcie %d.Liczba pszczol %d = %d - %d + %d.\n", entrance + 1, *P - semctl(semid, SEM_ULE, GETVAL) + *nadmiarULE, *P, semctl(semid, SEM_ULE, GETVAL), *nadmiarULE);
-
+        //printf("\t [Pszczola] Pszczo³a wesz³a do ula przez wejœcie %d.Liczba pszczol %d = %d - %d + %d.\n", entrance + 1, *P-semctl(semid, SEM_ULE, GETVAL) + *nadmiarULE, *P, semctl(semid, SEM_ULE, GETVAL), *nadmiarULE);
+        printf("\t [Pszczola] Pszczo³a wesz³a do ula przez wejœcie %d. \n", entrance + 1);
         // Zwolnij wejœcie
         release_semaphore(semid, sem_entrance);
 
@@ -208,40 +209,9 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         perror("semop failed during exit");
     }
     czy_zwiekszyc_pop = 1;
-    /*
-    struct sembuf death_noPOP[] = {
-            {SEM_POP, 0, 0},
-            {SEM_ULE, 1, 0}
-        };
-    struct sembuf death_noULE[] = {
-            {SEM_POP, 1, 0},
-            {SEM_ULE, 0, 0}
-        };
-    struct sembuf death_noULE_noPOP[] = {
-            {SEM_POP, 0, 0},
-            {SEM_ULE, 0, 0}
-        };
 
-
-    /*
-    if (semop(semid, death, 2) != -1 && *nadmiarULE == 0 && *nadmiarPOP == 0) {
-        printf("\t [Pszczola] Brak nadmiaru wszystko zgodnie z planem \n ");
-    }
-    else if (semop(semid, death_noPOP, 2) != -1 && *nadmiarULE == 0 && *nadmiarPOP > 0){
-        printf("\t [Pszczola] Nadmiar pszczol w Populacji nie zwiekszam semafora POP \n ");
-        (*nadmiarPOP)--;
-    }
-    else if (semop(semid, death_noULE, 2) != -1 && *nadmiarULE > 0 && *nadmiarPOP == 0){
-        printf("\t [Pszczola] Nadmiar pszczol w ulu nie zwiekszam semafora ULE \n ");
-        (*nadmiarULE)--;
-    }
-    else if (semop(semid, death_noULE_noPOP, 2) != -1 && *nadmiarULE > 0 && *nadmiarPOP > 0){
-        printf("\t [Pszczola] Nadmiar pszczol w ulu i populacji nie zwiekszam semafora ULE i POP \n ");
-        (*nadmiarULE)--;
-        (*nadmiarPOP)--;
-    }
-    */
     printf("\t [Pszczola] Pszczola umarla Semafor_ULE: %d \n", semctl(semid, SEM_ULE, GETVAL));
+    //printf("\t\033[31m[Pszczola] Pszczola umarla Semafor_ULE: %d\n \033[0m", semctl(semid, SEM_ULE, GETVAL));
     acquire_semaphore(semid, SEM_LOCK);
     if (*nadmiarULE > 0) {
         printf("\t [Pszczola] NADMIAR PSZCZOL, PSZCZOLA UMIERA , BRAK DLA NIEJ MIEJSCA");

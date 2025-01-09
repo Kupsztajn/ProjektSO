@@ -16,6 +16,51 @@
 #define SEM_KROL 4
 #define SEM_LOCK 5
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/sem.h>
+#include "shm.h"
+
+// Funkcja do inicjalizacji pamiêci wspó³dzielonej i semaforów
+void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
+    // Klucz do pamiêci wspó³dzielonej
+    key_t shm_key = ftok("/tmp", 'A');
+    if (shm_key == -1) {
+        perror("ftok failed for shared memory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Inicjalizacja pamiêci wspó³dzielonej
+    *shmid = shmget(shm_key, sizeof(struct SharedMemory), IPC_CREAT | 0600);
+    if (*shmid == -1) {
+        perror("shmget failed");
+        exit(EXIT_FAILURE);
+    }
+
+    *shm = (struct SharedMemory*)attach_shared_memory(*shmid);
+    if (*shm == NULL) {
+        perror("attach_shared_memory failed");
+        exit(EXIT_FAILURE);
+    }
+
+    // Klucz do semaforów
+    key_t sem_key = ftok("/tmp", 'B');
+    if (sem_key == -1) {
+        perror("ftok failed for semaphores");
+        exit(EXIT_FAILURE);
+    }
+
+    // Inicjalizacja semaforów
+    *semid = semget(sem_key, 6, IPC_CREAT | 0600);
+    if (*semid == -1) {
+        perror("semget failed");
+        detach_shared_memory(*shm);
+        exit(EXIT_FAILURE);
+    }
+}
+
 
 void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP);
 
@@ -30,7 +75,7 @@ void* zombie_collector(void* arg) {
 }
 
 int main() {
-
+    /*
     key_t shm_key = ftok("/tmp", 'A');
     if (shm_key == -1) {
         perror("ftok failed for shared memory");
@@ -44,7 +89,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    struct SharedMemory* shm = (struct SharedMemory*)attach_shared_memory(shmid);
+    struct SharedMemory* shm = (struct SharedMemory*) attach_shared_memory(shmid);
 
     key_t sem_key = ftok("/tmp", 'B');
     if (sem_key == -1) {
@@ -57,6 +102,7 @@ int main() {
         perror("semget failed");
         exit(EXIT_FAILURE);
     }
+    */
     /*
     // Inicjalizacja wartoœci semaforów
     inicjalizujSemafor(semid, SEM_ULE, shm->P);   // Liczba miejsc w ulu
@@ -65,6 +111,16 @@ int main() {
     inicjalizujSemafor(semid, SEM_ENT2, 1);       // Dostêpne drugie wejœcie/wyjœcie
 
     */
+    int shmid, semid;
+    struct SharedMemory* shm;
+
+    // Wywo³anie funkcji do inicjalizacji zasobów IPC
+    zbior_sem_mem(&shmid, &shm, &semid);
+
+    // Teraz mo¿esz u¿ywaæ `shm`, `shmid` i `semid`
+    printf("Pamiêæ wspó³dzielona i semafory zainicjalizowane.\n");
+    printf("shmid: %d, semid: %d\n", shmid, semid);
+
 
     pthread_t zombie_thread;
     if (pthread_create(&zombie_thread, NULL, zombie_collector, NULL) != 0) {
@@ -133,7 +189,7 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
                 */
 
                 execl("./pszczola", "pszczola", NULL);
-                perror("execl failed"); // execl siê nie powiedzie
+                perror("execl failed");
                 exit(EXIT_FAILURE);
             }
             else if (pid < 0) {
@@ -161,7 +217,7 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
         }
 
-        int delay = 3 + rand() % 5; // Losuje wartoœæ 3, 4 lub 5
-        sleep(delay);
+        int delay = 0 + rand() % 2; // Losuje wartoœæ 3, 4 lub 5
+        //sleep(delay);
     }
 }

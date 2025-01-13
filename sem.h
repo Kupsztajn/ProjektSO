@@ -1,3 +1,4 @@
+/*
 #ifndef SEM_H
 #define SEM_H
 
@@ -17,3 +18,4 @@ int acquire_semaphore(int semid, int sem_num);
 
 void release_entrance(int semid, int sem_entrance);
 #endif // SEM_H
+*/

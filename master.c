@@ -5,17 +5,30 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
+#include <sys/wait.h>
 #include "shm.h"
-#include "sem.h"
+//#include "sem.h"
 
 pid_t queen_pid; // PID królowej
 pid_t init_pid;  // PID procesu init
 int semid;       // ID semaforów
 int shmid;       // ID pamiêci wspó³dzielonej
-
+/*
+int free_semaphore(int semID, int liczba) {
+    int wynik = semctl(semid, 0, IPC_RMID, NULL);
+    if (wynik == -1) {
+        perror("Blad zwalniania tablicy semaforow (zwolnijSemafor):");
+    }
+    else
+    {
+    printf("Zwolniono semafory \n");
+    }
+    return wynik;
+}
+*/
 void cleanup_and_exit() {
-    printf("[MASTER] Czyszczenie zasobów...\n");
-
+    printf("[MASTER] ###### Czyszczenie zasobów... ###### \n");
+    /*
     // Zakoñczenie procesu królowej
     if (queen_pid > 0) {
         kill(queen_pid, SIGTERM);
@@ -27,17 +40,19 @@ void cleanup_and_exit() {
         kill(init_pid, SIGTERM);
         printf("[MASTER] Wys³ano SIGTERM do init (PID: %d).\n", init_pid);
     }
-
+    */
     // Usuniêcie pamiêci wspó³dzielonej
     if (shmid > 0) {
         shmctl(shmid, IPC_RMID, NULL);
-        printf("[MASTER] Usuniêto pamiêæ wspó³dzielon¹.\n");
+        printf("[MASTER] Zwolniono pamiêæ wspó³dzielon¹. \n");
     }
 
     // Usuniêcie semaforów
     if (semid > 0) {
         semctl(semid, 0, IPC_RMID);
-        printf("[MASTER] Usuniêto semafory.\n");
+        //free_semaphore(semid, 0);
+        //free_semaphore(semid, 0);
+        printf("[MASTER] Zwolniono semafory.\n");
     }
     printf("[MASTER] Program pszczelarz zakoñczony.\n");
     printf("[MASTER] Program krolowa zakoñczony.\n");
@@ -47,7 +62,7 @@ void cleanup_and_exit() {
 }
 
 void handle_sigint(int sig) {
-    printf("[MASTER] Otrzymano SIGINT (Ctrl + C). Koñczê dzia³anie...\n");
+    printf("[MASTER] Otrzymano SIGINT (Ctrl + C). Koñczê dzia³anie... \n");
     cleanup_and_exit();
 }
 
@@ -165,8 +180,8 @@ int main() {
     // Opcjolanie czekanie na zakonczenie
     printf("Oczekiwanie na zakoñczenie pszczelarz i krolowa...\n");
 
-    waitpid(pszczelarz_pid, NULL, 0);
-    printf("Program pszczelarz zakoñczony.\n");
+    //waitpid(pszczelarz_pid, NULL, 0);
+    //printf("Program pszczelarz zakoñczony.\n");
 
     waitpid(krolowa_pid, NULL, 0);
     printf("Program krolowa zakoñczony.\n");

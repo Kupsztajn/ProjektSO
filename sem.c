@@ -1,3 +1,4 @@
+/*
 #include "sem.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,3 +111,4 @@ void release_entrance(int semid, int sem_entrance) {
         perror("Failed to release entrance semafor");
     }
 }
+*/

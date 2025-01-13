@@ -198,7 +198,7 @@ void setup_signal_handler(int signal, void (*handler)(int)) {
 }
 
 int main() {
-
+    /*
     key_t shm_key = ftok("/tmp", 'A');
     if (shm_key == -1) {
         perror("\t \t [PSZCZELARZ] ftok failed for shared memory");
@@ -213,7 +213,7 @@ int main() {
     }
 
 
-    shm = (struct SharedMemory*)attach_shared_memory(shmid);
+    shm = (struct SharedMemory*) attach_shared_memory(shmid);
 
 
     key_t sem_key = ftok("/tmp", 'B');
@@ -228,13 +228,14 @@ int main() {
         detach_shared_memory(shm);
         exit(EXIT_FAILURE);
     }
-
+    */
     //inicjalizacja();
-    //int shmid, semid;
+    int shmid;
+    //int shmid;
     //struct SharedMemory* shm;
 
     // Wywo³anie funkcji do inicjalizacji zasobów IPC
-    //zbior_sem_mem(&shmid, &shm, &semid);
+    zbior_sem_mem(&shmid, &shm, &semid);
 
     setup_signal_handler(SIGHUP, handle_sighup);
     setup_signal_handler(SIGQUIT, handle_sigquit);

@@ -5,7 +5,7 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include "shm.h"
-#include "sem.h" 
+//#include "sem.h" 
 #include <sys/wait.h>
 #include <pthread.h> // Dodaj nag³ówek dla w¹tków
 
@@ -63,7 +63,7 @@ void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
 }
 */
 
-void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP);
+void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP);
 
 void* zombie_collector(void* arg) {
     while (1) {
@@ -141,7 +141,7 @@ int main() {
     return 0;
 }
 
-void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP) {
+void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP) {
     while (1) {
         printf("[Krolowa] Królowa sprawdza miejsce w ulu...Semafor_ULE: %d SEMAFOR_POP: %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
         struct sembuf wait_for_permission = { SEM_KROL, -1, 0 };
@@ -218,7 +218,7 @@ void queen_logic(int semid, int* ilosc, int* P, int* max, int* nadmiarULE, int* 
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
         }
 
-        int delay = 0 + rand() % 2; // Losuje wartoœæ 3, 4 lub 5
-        //sleep(delay);
+        int delay = 3 + rand() % 2; // Losuje wartoœæ 3, 4 lub 5
+        sleep(delay);
     }
 }

@@ -6,9 +6,9 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include "shm.h"
-#include "sem.h"
+//#include "sem.h"
 
-#define VISITS 50
+#define VISITS 5
 
 // indeksy semfaorow
 #define SEM_ENT1 0
@@ -111,7 +111,7 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int czy_zwiekszyc_pop = 1;
     while (odwiedziny--) {
 
-        //sleep(rand() % 1 + 1); // Pszczo³a w ulu
+        sleep(rand() % 5 + 5); // Pszczo³a w ulu
 
         // Wybór wejœcia przy wyjœciu
         int entrance = rand() % 2;
@@ -148,7 +148,7 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         release_semaphore(semid, SEM_LOCK);
         release_entrance(semid, entrance);
         // Symulacja pracy na zewn¹trz
-        //sleep(rand() % 1 + 1);
+        sleep(rand() % 5 + 5);
 
 
         // Zablokowanie dostêpu do nadmiarPOP i nadmiarULE

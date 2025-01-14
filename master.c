@@ -12,34 +12,10 @@ pid_t queen_pid; // PID królowej
 pid_t init_pid;  // PID procesu init
 int semid;       // ID semaforów
 int shmid;       // ID pamiêci wspó³dzielonej
-/*
-int free_semaphore(int semID, int liczba) {
-    int wynik = semctl(semid, 0, IPC_RMID, NULL);
-    if (wynik == -1) {
-        perror("Blad zwalniania tablicy semaforow (zwolnijSemafor):");
-    }
-    else
-    {
-    printf("Zwolniono semafory \n");
-    }
-    return wynik;
-}
-*/
+
 void cleanup_and_exit() {
     printf("[MASTER] ###### Czyszczenie zasobów... ###### \n");
-    /*
-    // Zakoñczenie procesu królowej
-    if (queen_pid > 0) {
-        kill(queen_pid, SIGTERM);
-        printf("[MASTER] Wys³ano SIGTERM do królowej (PID: %d).\n", queen_pid);
-    }
 
-    // Zakoñczenie procesu init
-    if (init_pid > 0) {
-        kill(init_pid, SIGTERM);
-        printf("[MASTER] Wys³ano SIGTERM do init (PID: %d).\n", init_pid);
-    }
-    */
     // Usuniêcie pamiêci wspó³dzielonej
     if (shmid > 0) {
         shmctl(shmid, IPC_RMID, NULL);
@@ -66,13 +42,6 @@ void handle_sigint(int sig) {
     printf("[MASTER] Otrzymano SIGINT (Ctrl + C). Koñczê dzia³anie... \n");
     cleanup_and_exit();
 }
-
-//int shmid, semid;
-//struct SharedMemory* shm;
-
-// Wywo³anie funkcji do inicjalizacji zasobów IPC
-//zbior_sem_mem(&shmid, &shm, &semid);
-
 
 int main() {
     signal(SIGINT, handle_sigint);

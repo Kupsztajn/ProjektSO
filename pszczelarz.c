@@ -9,12 +9,12 @@
 #include <sys/wait.h>
 
 
-#define SEM_ULE 2 
-#define SEM_POP 3 
-#define SEM_ENT1 0 
+#define SEM_ENT1 0
 #define SEM_ENT2 1 
+#define SEM_ULE  2 
+#define SEM_POP  3 
 #define SEM_KROL 4
-#define SEM_LOCK 5
+#define SEM_LOCK 5 
 
 struct SharedMemory* shm;
 
@@ -175,40 +175,8 @@ void setup_signal_handler(int signal, void (*handler)(int)) {
 }
 
 int main() {
-    /*
-    key_t shm_key = ftok("/tmp", 'A');
-    if (shm_key == -1) {
-        perror("\t \t [PSZCZELARZ] ftok failed for shared memory");
-        exit(EXIT_FAILURE);
-    }
 
-
-    int shmid = shmget(shm_key, sizeof(struct SharedMemory), 0600);
-    if (shmid == -1) {
-        perror("\t \t [PSZCZELARZ] shmget failed");
-        exit(EXIT_FAILURE);
-    }
-
-
-    shm = (struct SharedMemory*) attach_shared_memory(shmid);
-
-
-    key_t sem_key = ftok("/tmp", 'B');
-    if (sem_key == -1) {
-        perror("\t \t [PSZCZELARZ] ftok failed for semaphores");
-        exit(EXIT_FAILURE);
-    }
-
-    semid = semget(sem_key, 6, 0600);
-    if (semid == -1) {
-        perror("\t \t [PSZCZELARZ] semget failed");
-        detach_shared_memory(shm);
-        exit(EXIT_FAILURE);
-    }
-    */
     int shmid;
-    //int shmid;
-    //struct SharedMemory* shm;
 
     // Wywo³anie funkcji do inicjalizacji zasobów IPC
     zbior_sem_mem(&shmid, &shm, &semid);

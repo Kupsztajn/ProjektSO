@@ -4,10 +4,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
-#include "shm.h"
-//#include "sem.h" 
+#include "shm.h" 
 #include <sys/wait.h>
-#include <pthread.h> // Dodaj nag³ówek dla w¹tków
+#include <pthread.h>
 
 #define SEM_ULE 2 
 #define SEM_POP 3
@@ -16,59 +15,12 @@
 #define SEM_KROL 4
 #define SEM_LOCK 5
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/sem.h>
-#include "shm.h"
-
-// Funkcja do inicjalizacji pamiêci wspó³dzielonej i semaforów
-/*
-void zbior_sem_mem(int* shmid, struct SharedMemory** shm, int* semid) {
-    // Klucz do pamiêci wspó³dzielonej
-    key_t shm_key = ftok("/tmp", 'A');
-    if (shm_key == -1) {
-        perror("ftok failed for shared memory");
-        exit(EXIT_FAILURE);
-    }
-
-    // Inicjalizacja pamiêci wspó³dzielonej
-    *shmid = shmget(shm_key, sizeof(struct SharedMemory), IPC_CREAT | 0600);
-    if (*shmid == -1) {
-        perror("shmget failed");
-        exit(EXIT_FAILURE);
-    }
-
-    *shm = (struct SharedMemory*) attach_shared_memory(*shmid);
-    if (*shm == NULL) {
-        perror("attach_shared_memory failed");
-        exit(EXIT_FAILURE);
-    }
-
-    // Klucz do semaforów
-    key_t sem_key = ftok("/tmp", 'B');
-    if (sem_key == -1) {
-        perror("ftok failed for semaphores");
-        exit(EXIT_FAILURE);
-    }
-
-    // Inicjalizacja semaforów
-    *semid = semget(sem_key, 6, IPC_CREAT | 0600);
-    if (*semid == -1) {
-        perror("semget failed");
-        detach_shared_memory(*shm);
-        exit(EXIT_FAILURE);
-    }
-}
-*/
-
 void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP);
 
 void* zombie_collector(void* arg) {
     while (1) {
         while (waitpid(-1, NULL, WNOHANG) > 0) {
-            printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
+            printf("[KROLOWA] Zebrano martwa pszczola (proces zombie).\n");
         }
         sleep(1);
     }
@@ -104,21 +56,13 @@ int main() {
         exit(EXIT_FAILURE);
     }
     */
-    /*
-    // Inicjalizacja wartoœci semaforów
-    inicjalizujSemafor(semid, SEM_ULE, shm->P);   // Liczba miejsc w ulu
-    inicjalizujSemafor(semid, SEM_POP, shm->N);   // Ca³kowita populacja pszczó³
-    inicjalizujSemafor(semid, SEM_ENT1, 1);       // Dostêpne pierwsze wejœcie/wyjœcie
-    inicjalizujSemafor(semid, SEM_ENT2, 1);       // Dostêpne drugie wejœcie/wyjœcie
 
-    */
     int shmid, semid;
     struct SharedMemory* shm;
 
     // Wywo³anie funkcji do inicjalizacji zasobów IPC
     zbior_sem_mem(&shmid, &shm, &semid);
 
-    // Teraz mo¿esz u¿ywaæ `shm`, `shmid` i `semid`
     printf("Pamiêæ wspó³dzielona i semafory zainicjalizowane.\n");
     printf("shmid: %d, semid: %d\n", shmid, semid);
 
@@ -134,10 +78,6 @@ int main() {
 
     detach_shared_memory(shm);
 
-    if (semctl(semid, 0, IPC_RMID) == -1) {
-        perror("Failed to remove semaphore array");
-    }
-
     return 0;
 }
 
@@ -150,20 +90,34 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
         //struct sembuf lock_counters = {SEM_LOCK, -1, 0};
         //semop(semid, &lock_counters, 1);
         //acquire_semaphore(semid, SEM_LOCK);
+
         // czy jest miejsce w ulu na nowe jaja
         int wolne_miejsca = semctl(semid, SEM_ULE, GETVAL);
         if (wolne_miejsca > 0 && semctl(semid, SEM_POP, GETVAL) > 0) {
+
             // Obni¿enie `SEM_POP`
-            struct sembuf op_decrease_pop = { SEM_POP, -1, 0 };
+            /*
+            struct sembuf op_decrease_pop = {SEM_POP, -1, 0};
             if (semop(semid, &op_decrease_pop, 1) == -1) {
                 perror("semop failed for SEM_POP");
                 exit(EXIT_FAILURE);
             }
 
             // Obni¿enie `SEM_ULE` rezerwacja miejsca w ulu
-            struct sembuf op_decrease_ule = { SEM_ULE, -1, 0 };
+            struct sembuf op_decrease_ule = {SEM_ULE, -1, 0};
             if (semop(semid, &op_decrease_ule, 1) == -1) {
                 perror("semop failed for SEM_ULE");
+                exit(EXIT_FAILURE);
+            }
+            */
+            struct sembuf ops[] = {
+            {SEM_POP, -1, 0}, // Obni¿enie semafora populacji
+            {SEM_ULE, -1, 0}  // Obni¿enie semafora miejsc w ulu
+            };
+
+            // Wykonanie operacji
+            if (semop(semid, ops, 2) == -1) {
+                perror("semop failed for SEM_POP and SEM_ULE");
                 exit(EXIT_FAILURE);
             }
 
@@ -176,19 +130,6 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
             // Tworzenie nowego procesu potomnego dla pszczo³y
             pid_t pid = fork();
             if (pid == 0) {
-                // Wybór wejœcia/wyjœcia
-                /*
-                int entrance = rand() % 2;
-                int sem_entrance = (entrance == 0) ? SEM_ENT1 : SEM_ENT2;
-
-                // Zajêcie wejœcia/wyjœcia
-                struct sembuf op_decrease_entrance = {sem_entrance, -1, 0};
-                if (semop(semid, &op_decrease_entrance, 1) == -1) {
-                    perror("semop failed for entrance semaphore");
-                    exit(EXIT_FAILURE);
-                }
-                */
-
                 execl("./pszczola", "pszczola", NULL);
                 perror("execl failed");
                 exit(EXIT_FAILURE);
@@ -198,8 +139,7 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
                 exit(EXIT_FAILURE);
             }
         }
-        else if ((semctl(semid, SEM_POP, GETVAL) - *nadmiarPOP) < 0)
-        {
+        else if ((semctl(semid, SEM_POP, GETVAL) - *nadmiarPOP) < 0) {
             printf("[Krolowa] WSTRZYMANO PRODUKCJE Semafor_ULE %d SEMAFOR_POP %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
         }
         else {
@@ -218,7 +158,7 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
         }
 
-        int delay = 3 + rand() % 2; // Losuje wartoœæ 3, 4 lub 5
-        sleep(delay);
+        int delay = 3 + rand() % 2; //Odstep czasu skladania jaj (Tk) // Losuje wartoœæ 3, 4 lub 5
+        //sleep(delay);
     }
 }

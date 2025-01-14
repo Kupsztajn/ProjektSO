@@ -31,13 +31,13 @@ int main() {
     int shmid, semid;
     struct SharedMemory* shm;
 
-    // Wywo³anie funkcji do inicjalizacji zasobów IPC
+    // Wywolanie funkcji do inicjalizacji zasobow IPC
     zbior_sem_mem(&shmid, &shm, &semid);
 
     printf("Pamiêæ wspó³dzielona i semafory zainicjalizowane.\n");
     printf("shmid: %d, semid: %d\n", shmid, semid);
 
-    // tworzenie w¹tku do zbierania martwych pszczol
+    // tworzenie watku do zbierania martwych pszczol
     pthread_t zombie_thread;
     if (pthread_create(&zombie_thread, NULL, zombie_collector, NULL) != 0) {
         perror("Nie uda³o siê utworzyæ w¹tku do zbierania zombie");
@@ -104,7 +104,7 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
         }
 
-        //int delay = 3 + rand() % 2; //Odstep czasu skladania jaj (Tk) // Losuje wartoœæ 3, 4 lub 5
+        //int delay = 3 + rand() % 2; //Odstep czasu skladania jaj (Tk) // Losuje wartosc 3, 4 lub 5
         //sleep(delay);
     }
 }

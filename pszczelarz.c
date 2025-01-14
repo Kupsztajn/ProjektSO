@@ -19,13 +19,13 @@
 struct SharedMemory* shm;
 
 int semid;
-
+int shmid;
 // Handler dla SIGHUP (zwiekszanie N)
 void handle_sighup(int sig) {
     printf("\t \t [PSZCZELARZ] Otrzymano SIGHUP: Zmniejszanie N w pamiêci dzielonej i semaforze...\n");
     printf("\t \t [PSZCZELARZ] SEMAFOR_ULE: %d, SEMAFOR_POP: %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
 
-    // zablokowanie semaforów wejsc, wstrzymanie produkcji jaj, oraz zajecie pamieci dzielonej
+    // zablokowanie semaforow wejsc, wstrzymanie produkcji jaj, oraz zajecie pamieci dzielonej
     struct sembuf lock_all[] = {
         {SEM_ENT1, -1, 0},
         {SEM_ENT2, -1, 0},
@@ -81,7 +81,7 @@ void handle_sighup(int sig) {
     printf("\t \t [PSZCZELARZ] NADMIAR_ULE: %d, NADMIAR_POP: %d \n", shm->nadmiar_ULE, shm->nadmiar_POP);
 
 
-    // Odblokowanie semaforów wejsc, wznowienie produkcji jaj, oraz odblokowanie pamieci dzielonej
+    // Odblokowanie semaforow wejsc, wznowienie produkcji jaj, oraz odblokowanie pamieci dzielonej
     struct sembuf unlock_all[] = {
         {SEM_ENT1, 1, 0},
         {SEM_ENT2, 1, 0},
@@ -97,7 +97,7 @@ void handle_sigquit(int sig) {
     printf("\t \t [PSZCZELARZ] Otrzymano SIGQUIT: Zmniejszanie N w pamiêci dzielonej i semaforze...\n");
     printf("\t \t [PSZCZELARZ] SEMAFOR_ULE: %d, SEMAFOR_POP: %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
 
-    // zablokowanie semaforów wejsc, wstrzymanie produkcji jaj, oraz zajecie pamieci dzielonej
+    // zablokowanie semaforow wejsc, wstrzymanie produkcji jaj, oraz zajecie pamieci dzielonej
     struct sembuf lock_all[] = {
         {SEM_ENT1, -1, 0},
         {SEM_ENT2, -1, 0},
@@ -119,7 +119,7 @@ void handle_sigquit(int sig) {
         printf("\t \t [PSZCZELARZ] Nowa wartoœæ N: %d\n", shm->N);
         printf("\t \t [PSZCZELARZ] Nowa wartoœæ P: %d\n", shm->P);
 
-        // Zmniejszenie wartoœci semafora SEM_POP
+        // Zmniejszenie wartosci semafora SEM_POP
         if (wartN < 0) {
             shm->nadmiar_POP += abs(wartN);
             wartN = 0;
@@ -131,7 +131,7 @@ void handle_sigquit(int sig) {
             printf("\t \t [PSZCZELARZ] SEM_POP zaktualizowany do wartoœci: %d\n", wartN);
         }
 
-        // Zmniejszenie wartoœci semafora SEM_ULE
+        // Zmniejszenie wartosci semafora SEM_ULE
         if (wartP < 0) {
             shm->nadmiar_ULE += abs(wartP);
             wartP = 0;
@@ -149,7 +149,7 @@ void handle_sigquit(int sig) {
     }
     printf("\t \t [PSZCZELARZ] NADMIAR_ULE: %d, NADMIAR_POP: %d \n", shm->nadmiar_ULE, shm->nadmiar_POP);
 
-    // Odblokowanie semaforów wejsc, wznowienie produkcji jaj, oraz odblokowanie pamieci dzielonej
+    // Odblokowanie semaforow wejsc, wznowienie produkcji jaj, oraz odblokowanie pamieci dzielonej
     struct sembuf unlock_all[] = {
         {SEM_ENT1, 1, 0},
         {SEM_ENT2, 1, 0},
@@ -161,7 +161,7 @@ void handle_sigquit(int sig) {
 }
 
 
-// Funkcja rejestruj¹ca handler sygna³ów za pomoc¹ sigaction
+// Funkcja rejestrujaca handler sygna³ow za pomoca sigaction
 void setup_signal_handler(int signal, void (*handler)(int)) {
     struct sigaction sa;
     sa.sa_handler = handler;
@@ -175,10 +175,7 @@ void setup_signal_handler(int signal, void (*handler)(int)) {
 }
 
 int main() {
-
-    int shmid;
-
-    // Wywo³anie funkcji do inicjalizacji zasobów IPC
+    // Wywolanie funkcji do inicjalizacji zasobow IPC
     zbior_sem_mem(&shmid, &shm, &semid);
 
     setup_signal_handler(SIGHUP, handle_sighup);

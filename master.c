@@ -8,21 +8,21 @@
 #include <sys/wait.h>
 #include "shm.h"
 
-pid_t queen_pid; // PID królowej
+pid_t queen_pid; // PID krolowej
 pid_t init_pid;  // PID procesu init
-int semid;       // ID semaforów
-int shmid;       // ID pamiêci wspó³dzielonej
+int semid;       // ID semaforow
+int shmid;       // ID pamieci wspoldzielonej
 
 void cleanup_and_exit() {
     printf("[MASTER] ###### Czyszczenie zasobów... ###### \n");
 
-    // Usuniêcie pamiêci wspó³dzielonej
+    // Usuniecie pamieci wspoldzielonej
     if (shmid > 0) {
         destroy_shared_memory(shmid);
         printf("[MASTER] Zwolniono pamiêæ wspó³dzielon¹. \n");
     }
 
-    // Usuniêcie semaforów
+    // Usuniecie semaforow
     if (semid > 0) {
         free_semaphore(semid, 0);
         printf("[MASTER] Zwolniono semafory.\n");
@@ -126,7 +126,7 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    // Opcjolanie czekanie na zakonczenie / czekanie na sygnal ctrl + c
+    // Opcjonalne czekanie na zakonczenie / czekanie na sygnal ctrl + c
     printf("Oczekiwanie na zakoñczenie pszczelarz i krolowa...\n");
 
     waitpid(krolowa_pid, NULL, 0);

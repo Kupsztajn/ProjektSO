@@ -47,6 +47,7 @@ void handle_sigint(int sig) {
 }
 
 int main() {
+    // rejestracja sygnalu ctrl + c
     signal(SIGINT, handle_sigint);
 
     pid_t init_pid, pszczelarz_pid, krolowa_pid;

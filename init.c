@@ -16,7 +16,7 @@ int main() {
     int shmid, semid;
     struct SharedMemory* shm;
 
-    // Wywo³anie funkcji do inicjalizacji zasobów IPC
+    // Wywolanie funkcji do inicjalizacji zasobów IPC
     zbior_sem_mem(&shmid, &shm, &semid);
 
     shm->nadmiar_ULE = 0;

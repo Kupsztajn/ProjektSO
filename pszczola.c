@@ -9,7 +9,7 @@
 
 #define VISITS 50
 
-// indeksy semfaorow
+// indeksy semforow
 #define SEM_ENT1 0
 #define SEM_ENT2 1 
 #define SEM_ULE  2 

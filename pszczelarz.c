@@ -20,15 +20,19 @@ struct SharedMemory* shm;
 
 int semid;
 
+// Handler dla SIGHUP (zwiekszanie N)
 void handle_sighup(int sig) {
     printf("\t \t [PSZCZELARZ] Otrzymano SIGHUP: Zmniejszanie N w pamiêci dzielonej i semaforze...\n");
     printf("\t \t [PSZCZELARZ] SEMAFOR_ULE: %d, SEMAFOR_POP: %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
+
+    // zablokowanie semaforów wejsc, wstrzymanie produkcji jaj, oraz zajecie pamieci dzielonej
     struct sembuf lock_all[] = {
-        {SEM_ENT1, -1, 0}, // Zablokowanie SEM_ENT1
-        {SEM_ENT2, -1, 0}, // Zablokowanie SEM_ENT2
-        {SEM_KROL, -1, 0}, // Zablokowanie SEM_KROL
+        {SEM_ENT1, -1, 0},
+        {SEM_ENT2, -1, 0},
+        {SEM_KROL, -1, 0},
         {SEM_LOCK, -1, 0}
     };
+
     semop(semid, lock_all, 3);
 
     printf("\t \t [PSZCZELARZ] SEMAFOR_ULE: %d, SEMAFOR_POP: %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
@@ -39,19 +43,16 @@ void handle_sighup(int sig) {
         wartN = shm->N * 2 - shm->N + semctl(semid, SEM_POP, GETVAL);
         shm->N *= 2;
 
-        printf("wartP = %d - %d + %d \n", shm->P / 2, shm->P, semctl(semid, SEM_ULE, GETVAL));
-
         wartP = shm->P * 2 - shm->P + semctl(semid, SEM_ULE, GETVAL);
         shm->P *= 2;
 
         printf("\t \t [PSZCZELARZ] Nowa wartoœæ N: %d\n", shm->N);
         printf("\t \t [PSZCZELARZ] Nowa wartoœæ P: %d\n", shm->P);
 
-        // Zmniejszenie wartoœci semafora SEM_POP
+        // Zwiekszenie wartosci semafora SEM_POP
         if (wartN > 0) {
             shm->nadmiar_POP -= abs(wartN);
             if (shm->nadmiar_POP < 0) shm->nadmiar_POP = 0;
-            //wartN = 0;
         }
         if (semctl(semid, SEM_POP, SETVAL, wartN) == -1) {
             perror("\t \t [PSZCZELARZ] Nie uda³o siê zaktualizowaæ SEM_POP");
@@ -60,11 +61,10 @@ void handle_sighup(int sig) {
             printf("\t \t [PSZCZELARZ] SEM_POP zaktualizowany do wartoœci: %d\n", wartN);
         }
 
-        // Zmniejszenie wartoœci semafora SEM_ULE
+        // Zwiekszenie wartosci semafora SEM_ULE
         if (wartP > 0) {
             shm->nadmiar_ULE -= abs(wartP);
             if (shm->nadmiar_ULE < 0) shm->nadmiar_ULE = 0;
-            //wartP = 0;
         }
         if (semctl(semid, SEM_ULE, SETVAL, wartP) == -1) {
             perror("\t \t [PSZCZELARZ] Nie uda³o siê zaktualizowaæ SEM_ULE");
@@ -77,16 +77,18 @@ void handle_sighup(int sig) {
     else {
         printf("\t \t [PSZCZELARZ] N jest ju¿ maksymalne. Nie mo¿na zwiekszyc dalej.\n");
     }
+
     printf("\t \t [PSZCZELARZ] NADMIAR_ULE: %d, NADMIAR_POP: %d \n", shm->nadmiar_ULE, shm->nadmiar_POP);
 
 
-    // Odblokowanie semaforów wejœæ
+    // Odblokowanie semaforów wejsc, wznowienie produkcji jaj, oraz odblokowanie pamieci dzielonej
     struct sembuf unlock_all[] = {
-        {SEM_ENT1, 1, 0}, // Odblokowanie SEM_ENT1
-        {SEM_ENT2, 1, 0}, // Odblokowanie SEM_ENT2
-        {SEM_KROL, 1, 0},  // Odblokowanie SEM_KROL
+        {SEM_ENT1, 1, 0},
+        {SEM_ENT2, 1, 0},
+        {SEM_KROL, 1, 0},
         {SEM_LOCK, 1, 0}
     };
+
     semop(semid, unlock_all, 3);
 }
 
@@ -95,11 +97,11 @@ void handle_sigquit(int sig) {
     printf("\t \t [PSZCZELARZ] Otrzymano SIGQUIT: Zmniejszanie N w pamiêci dzielonej i semaforze...\n");
     printf("\t \t [PSZCZELARZ] SEMAFOR_ULE: %d, SEMAFOR_POP: %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
 
-    // Zablokowanie semaforów wejœæ
+    // zablokowanie semaforów wejsc, wstrzymanie produkcji jaj, oraz zajecie pamieci dzielonej
     struct sembuf lock_all[] = {
-        {SEM_ENT1, -1, 0}, // Zablokowanie SEM_ENT1
-        {SEM_ENT2, -1, 0}, // Zablokowanie SEM_ENT2
-        {SEM_KROL, -1, 0}, // Zablokowanie SEM_KROL
+        {SEM_ENT1, -1, 0},
+        {SEM_ENT2, -1, 0},
+        {SEM_KROL, -1, 0},
         {SEM_LOCK, -1, 0}
     };
     semop(semid, lock_all, 3);
@@ -110,8 +112,6 @@ void handle_sigquit(int sig) {
 
         wartN = shm->N / 2 - shm->N + semctl(semid, SEM_POP, GETVAL);
         shm->N /= 2;
-
-        printf("wartP = %d - %d + %d \n", shm->P / 2, shm->P, semctl(semid, SEM_ULE, GETVAL));
 
         wartP = shm->P / 2 - shm->P + semctl(semid, SEM_ULE, GETVAL);
         shm->P /= 2;
@@ -149,15 +149,15 @@ void handle_sigquit(int sig) {
     }
     printf("\t \t [PSZCZELARZ] NADMIAR_ULE: %d, NADMIAR_POP: %d \n", shm->nadmiar_ULE, shm->nadmiar_POP);
 
-    // Odblokowanie semaforów wejœæ
+    // Odblokowanie semaforów wejsc, wznowienie produkcji jaj, oraz odblokowanie pamieci dzielonej
     struct sembuf unlock_all[] = {
-        {SEM_ENT1, 1, 0}, // Odblokowanie SEM_ENT1
-        {SEM_ENT2, 1, 0}, // Odblokowanie SEM_ENT2
-        {SEM_KROL, 1, 0},  // Odblokowanie SEM_KROL
+        {SEM_ENT1, 1, 0},
+        {SEM_ENT2, 1, 0},
+        {SEM_KROL, 1, 0},
         {SEM_LOCK, 1, 0}
     };
-    semop(semid, unlock_all, 3);
 
+    semop(semid, unlock_all, 3);
 }
 
 
@@ -191,6 +191,7 @@ int main() {
     while (1) {
         pause();
     }
+
     detach_shared_memory(shm);
 
     return 0;

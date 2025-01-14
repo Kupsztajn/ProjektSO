@@ -18,23 +18,26 @@ void cleanup_and_exit() {
 
     // Usuniêcie pamiêci wspó³dzielonej
     if (shmid > 0) {
-        shmctl(shmid, IPC_RMID, NULL);
+        destroy_shared_memory(shmid);
         printf("[MASTER] Zwolniono pamiêæ wspó³dzielon¹. \n");
     }
 
     // Usuniêcie semaforów
     if (semid > 0) {
-        semctl(semid, 0, IPC_RMID);
-        //free_semaphore(semid, 0);
-        //free_semaphore(semid, 0);
+        free_semaphore(semid, 0);
         printf("[MASTER] Zwolniono semafory.\n");
     }
+
     sleep(1);
+
     printf("[MASTER] Program pszczelarz zakoñczony.\n");
     printf("[MASTER] Program krolowa zakoñczony.\n");
     printf("[MASTER] Program init zakoñczony.\n");
+
     sleep(1);
+
     printf("[MASTER] Program zakoñczony.\n");
+
     exit(0);
 }
 
@@ -45,66 +48,35 @@ void handle_sigint(int sig) {
 
 int main() {
     signal(SIGINT, handle_sigint);
+
     pid_t init_pid, pszczelarz_pid, krolowa_pid;
-
-    //int shmid, semid;
-    //struct SharedMemory* shm;
-
-    // Wywo³anie funkcji do inicjalizacji zasobów IPC
-    //zbior_sem_mem2(&shmid, &shm, &semid);
-
-    // Inicjalizacja zasobów
-
-    key_t shm_key = ftok("/tmp", 'A');
-    if (shm_key == -1) {
-        perror("ftok failed for shared memory");
-        exit(EXIT_FAILURE);
-    }
-
-    shmid = shmget(shm_key, sizeof(struct SharedMemory), IPC_CREAT | 0600);
-    if (shmid == -1) {
-        perror("shmget failed");
-        exit(EXIT_FAILURE);
-    }
-
-    struct SharedMemory* shm = (struct SharedMemory*)shmat(shmid, NULL, 0);
-    if (shm == (void*)-1) {
-        perror("Nie uda³o siê pod³¹czyæ segmentu pamiêci wspó³dzielonej");
-        exit(EXIT_FAILURE);
-    }
-
-    key_t sem_key = ftok("/tmp", 'B');
-    if (sem_key == -1) {
-        perror("ftok failed for semaphores");
-        exit(EXIT_FAILURE);
-    }
-
-    semid = semget(sem_key, 6, IPC_CREAT | 0600);
-    if (semid == -1) {
-        perror("semget failed");
-        exit(EXIT_FAILURE);
-    }
-
+    struct SharedMemory* shm;
     int limit;
 
-    // Wczytywanie limitu populacji od u¿ytkownika
+    // Wywolanie funkcji do inicjalizacji zasobow IPC
+    zbior_sem_mem(&shmid, &shm, &semid);
+
+    // Wczytywanie limitu populacji od uzytkownika
     while (1) {
         printf("Podaj limit populacji (liczba ca³kowita wiêksza od 1): ");
         if (scanf("%d", &limit) == 1 && limit > 1) {
-            // Wartoœæ poprawna
+            // Wartosc poprawna
             break;
         }
         else {
-            // Wartoœæ niepoprawna
+            // Wartosc niepoprawna
             printf("Niepoprawna wartoœæ! Spróbuj ponownie.\n");
 
-            // Wyczyœæ bufor wejœciowy
+            // Wyczysc bufor wejsciowy
             while (getchar() != '\n');
         }
     }
 
     printf("[MASTER] Uruchamianie init...\n");
+
+    // Proces init
     init_pid = fork();
+
     if (init_pid == 0) {
         execl("./init", "init", NULL);
         perror("Nie uda³o siê uruchomiæ init");
@@ -113,7 +85,9 @@ int main() {
 
     shm->N = limit;
     shm->P = limit / 2;
+
     sleep(1);
+
     printf("[MASTER] Przypisano limit populacji: %d\n", limit);
     printf("[MASTER] Przypisano limit ula: %d\n", shm->P);
 
@@ -121,9 +95,11 @@ int main() {
 
     // Uruchamianie programu pszczelarz
     printf("[MASTER] Uruchamianie programu pszczelarz...\n");
+
+    // Proces potomny dla pszczelarz
     pszczelarz_pid = fork();
+
     if (pszczelarz_pid == 0) {
-        // Proces potomny dla pszczelarz
         execl("./pszczelarz", "./pszczelarz", NULL);
         perror("Nie uda³o siê uruchomiæ pszczelarz");
         exit(EXIT_FAILURE);
@@ -136,7 +112,10 @@ int main() {
     sleep(2);
 
     printf("[MASTER] Uruchamianie programu krolowa...\n");
+
+    // Proces krolowa
     krolowa_pid = fork();
+
     if (krolowa_pid == 0) {
         execl("./krolowa", "./krolowa", NULL);
         perror("Nie uda³o siê uruchomiæ krolowa");
@@ -146,18 +125,18 @@ int main() {
         perror("B³¹d podczas forka dla krolowa");
         exit(EXIT_FAILURE);
     }
-    // Opcjolanie czekanie na zakonczenie
-    printf("Oczekiwanie na zakoñczenie pszczelarz i krolowa...\n");
 
-    //waitpid(pszczelarz_pid, NULL, 0);
-    //printf("Program pszczelarz zakoñczony.\n");
+    // Opcjolanie czekanie na zakonczenie / czekanie na sygnal ctrl + c
+    printf("Oczekiwanie na zakoñczenie pszczelarz i krolowa...\n");
 
     waitpid(krolowa_pid, NULL, 0);
     printf("Program krolowa zakoñczony.\n");
 
     printf(" [MASTER] Koñczenie programu init, jeœli dzia³a...\n");
+
     kill(init_pid, SIGTERM);
     waitpid(init_pid, NULL, 0);
+
     printf("[MASTER] Program init zakoñczony.\n");
 
     printf("[MASTER] Wszystkie procesy zakoñczone.\n");

@@ -37,7 +37,7 @@ int main() {
     printf("Pamiêæ wspó³dzielona i semafory zainicjalizowane.\n");
     printf("shmid: %d, semid: %d\n", shmid, semid);
 
-
+    // tworzenie w¹tku do zbierania martwych pszczol
     pthread_t zombie_thread;
     if (pthread_create(&zombie_thread, NULL, zombie_collector, NULL) != 0) {
         perror("Nie uda³o siê utworzyæ w¹tku do zbierania zombie");
@@ -55,19 +55,20 @@ int main() {
 void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* nadmiarPOP) {
     while (1) {
         printf("[Krolowa] Królowa sprawdza miejsce w ulu...Semafor_ULE: %d SEMAFOR_POP: %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
-        struct sembuf wait_for_permission = { SEM_KROL, -1, 0 };
-        semop(semid, &wait_for_permission, 1);
+
+        // opuszczenie semafora krolowej
+        acquire_semaphore(semid, SEM_KROL);
 
         // czy jest miejsce w ulu na nowe jaja
         int wolne_miejsca = semctl(semid, SEM_ULE, GETVAL);
         if (wolne_miejsca > 0 && semctl(semid, SEM_POP, GETVAL) > 0) {
 
+            // Obnizenie semaforow ule i pop
             struct sembuf ops[] = {
-            {SEM_POP, -1, 0}, // Obni¿enie semafora populacji
-            {SEM_ULE, -1, 0}  // Obni¿enie semafora miejsc w ulu
+            {SEM_POP, -1, 0},
+            {SEM_ULE, -1, 0}
             };
 
-            // Wykonanie operacji
             if (semop(semid, ops, 2) == -1) {
                 perror("semop failed for SEM_POP and SEM_ULE");
                 exit(EXIT_FAILURE);
@@ -96,8 +97,8 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
             printf("[Krolowa] Brak miejsca w ulu lub osiagnieto limit populacji na z³o¿enie jaj. Królowa czeka... Semafor_ULE %d SEMAFOR_POP %d \n", semctl(semid, SEM_ULE, GETVAL), semctl(semid, SEM_POP, GETVAL));
         }
 
-        struct sembuf release_permission = { SEM_KROL, 1, 0 }; // Przywrócenie dostêpu
-        semop(semid, &release_permission, 1);
+        // podniesienie semafora krolowej
+        release_semaphore(semid, SEM_KROL);
 
         while (waitpid(-1, NULL, WNOHANG) > 0) {
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");

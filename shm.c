@@ -95,10 +95,7 @@ int free_semaphore(int semID, int liczba) {
     if (wynik == -1) {
         perror("Blad zwalniania tablicy semaforow (zwolnijSemafor):");
     }
-    else
-    {
-        printf("Zwolniono semafory \n");
-    }
+
     return wynik;
 }
 
@@ -131,11 +128,3 @@ int acquire_semaphore(int semid, int sem_num) {
     }
     return 0;
 }
-
-void release_entrance(int semid, int sem_entrance) {
-    struct sembuf op_increase_entrance = { sem_entrance, 1, 0 };
-    if (semop(semid, &op_increase_entrance, 1) == -1) {
-        perror("Failed to release entrance semafor");
-    }
-}
-

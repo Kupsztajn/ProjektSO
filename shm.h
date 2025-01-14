@@ -33,8 +33,4 @@ int acquire_semaphore(int semid, int sem_num);
 
 void release_entrance(int semid, int sem_entrance);
 
-//int waitSemafor(int semID, int number, int flags);
-//void signalSemafor(int semID, int number);
-//int valueSemafor(int semID, int number);
-//int alokujSemafor(key_t klucz, int number, int flagi);
 #endif

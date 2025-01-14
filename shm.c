@@ -89,19 +89,6 @@ void destroy_shared_memory(int shmid) {
         exit(EXIT_FAILURE);
     }
 }
-// #######
-int alokujSemafor(key_t klucz, int liczba, int flagi) {
-    int semID = semget(klucz, liczba, flagi);
-    if (semID == -1) {
-        perror("Blad semget (alokujSemafor):");
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        printf("Tablica semaforow zostal zaalokowana w liczbie %d \n", liczba);
-    }
-    return semID;
-}
 
 int free_semaphore(int semID, int liczba) {
     int wynik = semctl(semID, liczba, IPC_RMID, NULL);
@@ -127,7 +114,33 @@ void init_semaphore(int semID, int liczba, int wartosc) {
     }
 }
 
-// Funkcja wykonuje operacjê WAIT na semaforze (P)
+int release_semaphore(int semid, int sem_num) {
+    struct sembuf op = { sem_num, 1, 0 };
+    if (semop(semid, &op, 1) == -1) {
+        perror("Failed to release semaphore");
+        return -1;
+    }
+    return 0;
+}
+
+int acquire_semaphore(int semid, int sem_num) {
+    struct sembuf op = { sem_num, -1, 0 };
+    if (semop(semid, &op, 1) == -1) {
+        perror("Failed to acquire semaphore");
+        return -1;
+    }
+    return 0;
+}
+
+void release_entrance(int semid, int sem_entrance) {
+    struct sembuf op_increase_entrance = { sem_entrance, 1, 0 };
+    if (semop(semid, &op_increase_entrance, 1) == -1) {
+        perror("Failed to release entrance semafor");
+    }
+}
+
+// Funkcja wykonuje operacjê WAIT na semaforze (P) #### delete
+/*
 int waitSemafor(int semID, int liczba, int flagi) {
     struct sembuf operacje[1];
     operacje[0].sem_num = liczba;
@@ -140,7 +153,7 @@ int waitSemafor(int semID, int liczba, int flagi) {
     }
     else
     {
-        printf("Opuszczono semafor %d \n", liczba);
+    printf("Opuszczono semafor %d \n", liczba);
     }
 
     return 0; // Operacja udana
@@ -172,27 +185,18 @@ int valueSemafor(int semID, int liczba) {
     return wartosc;
 }
 
-int release_semaphore(int semid, int sem_num) {
-    struct sembuf op = { sem_num, 1, 0 };
-    if (semop(semid, &op, 1) == -1) {
-        perror("Failed to release semaphore");
-        return -1;
+// #######
+/*
+int alokujSemafor(key_t klucz, int liczba, int flagi) {
+    int semID = semget(klucz, liczba, flagi);
+    if (semID == -1) {
+        perror("Blad semget (alokujSemafor):");
+        exit(EXIT_FAILURE);
     }
-    return 0;
-}
-
-int acquire_semaphore(int semid, int sem_num) {
-    struct sembuf op = { sem_num, -1, 0 };
-    if (semop(semid, &op, 1) == -1) {
-        perror("Failed to acquire semaphore");
-        return -1;
+    else
+    {
+    printf("Tablica semaforow zostal zaalokowana w liczbie %d \n", liczba);
     }
-    return 0;
+    return semID;
 }
-
-void release_entrance(int semid, int sem_entrance) {
-    struct sembuf op_increase_entrance = { sem_entrance, 1, 0 };
-    if (semop(semid, &op_increase_entrance, 1) == -1) {
-        perror("Failed to release entrance semafor");
-    }
-}
+*/

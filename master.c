@@ -7,7 +7,6 @@
 #include <sys/sem.h>
 #include <sys/wait.h>
 #include "shm.h"
-//#include "sem.h"
 
 pid_t queen_pid; // PID królowej
 pid_t init_pid;  // PID procesu init
@@ -54,9 +53,11 @@ void cleanup_and_exit() {
         //free_semaphore(semid, 0);
         printf("[MASTER] Zwolniono semafory.\n");
     }
+    sleep(1);
     printf("[MASTER] Program pszczelarz zakoñczony.\n");
     printf("[MASTER] Program krolowa zakoñczony.\n");
     printf("[MASTER] Program init zakoñczony.\n");
+    sleep(1);
     printf("[MASTER] Program zakoñczony.\n");
     exit(0);
 }
@@ -66,11 +67,25 @@ void handle_sigint(int sig) {
     cleanup_and_exit();
 }
 
+//int shmid, semid;
+//struct SharedMemory* shm;
+
+// Wywo³anie funkcji do inicjalizacji zasobów IPC
+//zbior_sem_mem(&shmid, &shm, &semid);
+
 
 int main() {
     signal(SIGINT, handle_sigint);
     pid_t init_pid, pszczelarz_pid, krolowa_pid;
+
+    //int shmid, semid;
+    //struct SharedMemory* shm;
+
+    // Wywo³anie funkcji do inicjalizacji zasobów IPC
+    //zbior_sem_mem2(&shmid, &shm, &semid);
+
     // Inicjalizacja zasobów
+
     key_t shm_key = ftok("/tmp", 'A');
     if (shm_key == -1) {
         perror("ftok failed for shared memory");
@@ -80,6 +95,12 @@ int main() {
     shmid = shmget(shm_key, sizeof(struct SharedMemory), IPC_CREAT | 0600);
     if (shmid == -1) {
         perror("shmget failed");
+        exit(EXIT_FAILURE);
+    }
+
+    struct SharedMemory* shm = (struct SharedMemory*)shmat(shmid, NULL, 0);
+    if (shm == (void*)-1) {
+        perror("Nie uda³o siê pod³¹czyæ segmentu pamiêci wspó³dzielonej");
         exit(EXIT_FAILURE);
     }
 
@@ -95,6 +116,24 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    int limit;
+
+    // Wczytywanie limitu populacji od u¿ytkownika
+    while (1) {
+        printf("Podaj limit populacji (liczba ca³kowita wiêksza od 1): ");
+        if (scanf("%d", &limit) == 1 && limit > 1) {
+            // Wartoœæ poprawna
+            break;
+        }
+        else {
+            // Wartoœæ niepoprawna
+            printf("Niepoprawna wartoœæ! Spróbuj ponownie.\n");
+
+            // Wyczyœæ bufor wejœciowy
+            while (getchar() != '\n');
+        }
+    }
+
     printf("[MASTER] Uruchamianie init...\n");
     init_pid = fork();
     if (init_pid == 0) {
@@ -103,55 +142,14 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    // #####
-    /*
-    pid_t init_pid, pszczelarz_pid, krolowa_pid;
-    // Uruchamianie programu init
-    printf("Uruchamianie programu init...\n");
-    init_pid = fork();
-    if (init_pid == 0) {
-        execl("./init", "./init", NULL);
-        perror("Nie uda³o siê uruchomiæ init");
-        exit(EXIT_FAILURE);
-    } else if (init_pid < 0) {
-        perror("B³¹d podczas forka dla init");
-        exit(EXIT_FAILURE);
-    }
-    */
+    shm->N = limit;
+    shm->P = limit / 2;
     sleep(1);
-    /*
-    key_t shm_key = ftok("/tmp", 'A');
-    if (shm_key == -1) {
-        perror("ftok failed for shared memory");
-        exit(EXIT_FAILURE);
-    }
+    printf("[MASTER] Przypisano limit populacji: %d\n", limit);
+    printf("[MASTER] Przypisano limit ula: %d\n", shm->P);
 
-    int shmid = shmget(shm_key, sizeof(struct SharedMemory), 0600);
-    if (shmid == -1) {
-        perror("shmget failed");
-        exit(EXIT_FAILURE);
-    }
+    sleep(2);
 
-    struct SharedMemory* shm = (struct SharedMemory*) shmat(shmid, NULL, 0);
-    if (shm == (void*) -1) {
-        perror("shmat failed");
-        exit(EXIT_FAILURE);
-    }
-
-    // Zapytaj u¿ytkownika o nowy limit populacji
-    int population_limit;
-    printf("Podaj nowy limit populacji (N): ");
-    if (scanf("%d", &population_limit) != 1 || population_limit <= 0) {
-        fprintf(stderr, "Niepoprawny limit populacji. Podaj liczbê ca³kowit¹ wiêksz¹ od 0.\n");
-        shmdt(shm);
-        exit(EXIT_FAILURE);
-    }
-
-    // Aktualizacja limitu populacji i ula w pamiêci wspó³dzielonej
-    shm->N = population_limit;
-    shm->P = population_limit / 2; // Zaktualizuj limit pszczó³ w ulu
-    printf("Zaktualizowano limity: N = %d, P = %d\n", shm->N, shm->P);
-    */
     // Uruchamianie programu pszczelarz
     printf("[MASTER] Uruchamianie programu pszczelarz...\n");
     pszczelarz_pid = fork();
@@ -165,7 +163,9 @@ int main() {
         perror("B³¹d podczas forka dla pszczelarz");
         exit(EXIT_FAILURE);
     }
-    sleep(1);
+
+    sleep(2);
+
     printf("[MASTER] Uruchamianie programu krolowa...\n");
     krolowa_pid = fork();
     if (krolowa_pid == 0) {

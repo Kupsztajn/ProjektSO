@@ -11,11 +11,11 @@
 
 // indeksy semfaorow
 #define SEM_ENT1 0
-#define SEM_ENT2 1
-#define SEM_ULE  2
+#define SEM_ENT2 1 
+#define SEM_ULE  2 
 #define SEM_POP  3 
 #define SEM_KROL 4
-#define SEM_LOCK 5
+#define SEM_LOCK 5 
 
 void bee_logic(int semid, int* P, int* shm, int* nadmiarULE, int* nadmiarPOP);
 
@@ -33,32 +33,6 @@ int main() {
     // Od³¹czenie pamiêci wspó³dzielonej
     detach_shared_memory(shm);
 }
-/*
-int release_semaphore(int semid, int sem_num) {
-    struct sembuf op = {sem_num, 1, 0};
-    if (semop(semid, &op, 1) == -1) {
-        perror("Failed to release semaphore");
-        return -1;
-    }
-    return 0;
-}
-
-int acquire_semaphore(int semid, int sem_num) {
-    struct sembuf op = {sem_num, -1, 0};
-    if (semop(semid, &op, 1) == -1) {
-        perror("Failed to acquire semaphore");
-        return -1;
-    }
-    return 0;
-}
-
-void release_entrance(int semid, int sem_entrance) {
-    struct sembuf op_increase_entrance = {sem_entrance, 1, 0};
-    if (semop(semid, &op_increase_entrance, 1) == -1) {
-        perror("Failed to release entrance semafor");
-    }
-}
-*/
 
 void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int odwiedziny = VISITS;

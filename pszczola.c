@@ -40,7 +40,10 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
     int czy_zwiekszyc_pop = 1;
     while (odwiedziny--) {
 
-        //sleep(rand() % 5 + 1); // Pszczola w ulu
+        //sleep(rand() % 2 + 3); // Pszczola w ulu
+
+        //int delay = 100 + rand() % 401;
+        //usleep(delay);
 
         // Wybor wejscia przy wyjsciu
         int entrance = rand() % 2;
@@ -48,8 +51,7 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
 
         // Atomowe zajecie wejscia i zwiekszenie SEM_ULE
         acquire_semaphore(semid, SEM_LOCK);
-
-        if (*nadmiarULE > 0 && semctl(semid, SEM_ULE, GETVAL) > *P) {
+        if (*nadmiarULE > 0 || semctl(semid, SEM_ULE, GETVAL) > *P) {
             czy_zwiekszyc_ule = 0;
         }
         else {
@@ -76,7 +78,9 @@ void bee_logic(int semid, int* P, int* N, int* nadmiarULE, int* nadmiarPOP) {
         release_semaphore(semid, entrance);
 
         // Symulacja pracy na zewn¹trz
-        //sleep(rand() % 5 + 5);
+        //sleep(rand() % 2 + 5);
+        //delay = 100 + rand() % 401;
+        //usleep(delay);
 
         // Wybór wejœcia przy powrocie
         entrance = rand() % 2;

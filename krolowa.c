@@ -60,7 +60,8 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
         acquire_semaphore(semid, SEM_KROL);
 
         // czy jest miejsce w ulu na nowe jaja
-        int wolne_miejsca = semctl(semid, SEM_ULE, GETVAL);
+        //int wolne_miejsca = semctl(semid, SEM_ULE, GETVAL);
+        int wolne_miejsca = semctl(semid, SEM_ULE, GETVAL) - *nadmiarULE;
         if (wolne_miejsca > 0 && semctl(semid, SEM_POP, GETVAL) > 0) {
 
             // Obnizenie semaforow ule i pop
@@ -104,7 +105,9 @@ void queen_logic(int semid, int ilosc, int* P, int* max, int* nadmiarULE, int* n
             printf("[KROLOWA] Zebrano zakoñczony proces potomny (pszczo³a).\n");
         }
 
-        //int delay = 3 + rand() % 2; //Odstep czasu skladania jaj (Tk) // Losuje wartosc 3, 4 lub 5
+        //int delay = 3 + rand() % 5; //Odstep czasu skladania jaj (Tk) // Losuje wartosc 3, 4 lub 5
         //sleep(delay);
+        //int delay = 100 + rand() % 401;
+        //usleep(delay);
     }
 }
